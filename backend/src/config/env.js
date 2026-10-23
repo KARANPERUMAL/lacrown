@@ -11,7 +11,7 @@ const config = {
 
   // Allowed CORS origins for the Vercel frontend and local development
   clientOrigins: process.env.CLIENT_ORIGIN
-    ? process.env.CLIENT_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean)
+    ? process.env.CLIENT_ORIGIN.split(',').map(origin => origin.trim().replace(/\/+$/, '')).filter(Boolean)
     : ['http://localhost:5050', 'http://localhost:3000', 'http://127.0.0.1:5500'],
 
   // Database Connection (Neon PostgreSQL)

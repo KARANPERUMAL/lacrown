@@ -872,7 +872,7 @@ const API_BASE = (typeof window !== 'undefined' && window.__CONFIG__ && window._
   ? window.__CONFIG__.API_BASE_URL
   : ((typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
       ? 'http://localhost:8000/api'
-      : '/api');
+      : 'https://lacrown.onrender.com/api');
 
 document.querySelectorAll('.demo-form').forEach(form => {
   form.addEventListener('submit', async e => {
@@ -909,12 +909,14 @@ document.querySelectorAll('.demo-form').forEach(form => {
       const json = await res.json();
 
       if (res.ok) {
-        handleSuccess(json.reference || refCode);
+        handleSuccess(json.reference || refCode, true);
       } else {
-        handleSuccess(refCode);
+        console.warn('API returned non-OK response:', json);
+        handleSuccess(refCode, false);
       }
     } catch (err) {
-      handleSuccess(refCode);
+      console.error('Could not reach backend API at ' + API_BASE + endpoint + ':', err);
+      handleSuccess(refCode, false);
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -922,7 +924,7 @@ document.querySelectorAll('.demo-form').forEach(form => {
       }
     }
 
-    function handleSuccess(ref) {
+    function handleSuccess(ref, isSynced = false) {
       if (isAppt) {
         saveAppointmentLocally({
           reference: ref,
@@ -933,7 +935,7 @@ document.querySelectorAll('.demo-form').forEach(form => {
           name: data.name,
           email: data.email,
           phone: data.phone,
-          status: 'Concierge Call Pending',
+          status: isSynced ? 'Concierge Call Pending' : 'Recorded Offline',
           createdAt: new Date().toISOString()
         });
 
@@ -947,14 +949,14 @@ document.querySelectorAll('.demo-form').forEach(form => {
               <span style="display:inline-block;background:#541122;color:#ffffff;padding:5px 12px;border-radius:6px;font-size:11px;letter-spacing:0.1em;font-weight:700;">
                 REF: ${ref}
               </span>
-              <span style="font-size:11px;color:#2e7d32;display:inline-flex;align-items:center;gap:4px;font-weight:600;">
-                ● Recorded in Your Client Account Drawer
+              <span style="font-size:11px;color:${isSynced ? '#2e7d32' : '#b89347'};display:inline-flex;align-items:center;gap:4px;font-weight:600;">
+                ● ${isSynced ? 'Live Synced to Clinic Server & Concierge Notified' : 'Recorded in Client Account Drawer (Offline Mode)'}
               </span>
             </div>
             <p style="margin:10px 0 0;font-size:11px;color:#746970;">Our clinical concierge will call <b>${data.phone}</b> to confirm your consultation for <b>${data.date} at ${data.time}</b> with <b>${data.doctor || 'Senior Specialist'}</b>.</p>
           </div>
         `;
-        showToast(`Consultation requested · REF: ${ref}`);
+        showToast(isSynced ? `Consultation confirmed · REF: ${ref}` : `Request saved · REF: ${ref}`);
       } else {
         resultEl.innerHTML = `
           <div style="background:rgba(184,147,71,0.12);border:1px solid #b89347;color:#460f1f;padding:18px;border-radius:10px;margin-top:16px;">
@@ -962,12 +964,17 @@ document.querySelectorAll('.demo-form').forEach(form => {
               <span>✓</span> Message Delivered to Clinic
             </div>
             <p style="margin:0 0 10px;font-size:12px;line-height:1.6;">Thank you, <b>${data.name}</b>. Your message has been received by our clinical desk.</p>
-            <div style="display:inline-block;background:#541122;color:#ffffff;padding:5px 12px;border-radius:6px;font-size:11px;letter-spacing:0.1em;font-weight:700;">
-              REF: ${ref}
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;">
+              <span style="display:inline-block;background:#541122;color:#ffffff;padding:5px 12px;border-radius:6px;font-size:11px;letter-spacing:0.1em;font-weight:700;">
+                REF: ${ref}
+              </span>
+              <span style="font-size:11px;color:${isSynced ? '#2e7d32' : '#b89347'};display:inline-flex;align-items:center;gap:4px;font-weight:600;">
+                ● ${isSynced ? 'Delivered to Management Desk' : 'Recorded Offline'}
+              </span>
             </div>
           </div>
         `;
-        showToast(`Message sent · REF: ${ref}`);
+        showToast(`Message processed · REF: ${ref}`);
       }
       form.reset();
     }
