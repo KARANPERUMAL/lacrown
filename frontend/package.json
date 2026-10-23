@@ -1,0 +1,8 @@
+{
+  "name": "lacrown-frontend",
+  "version": "1.0.0",
+  "description": "La Crown Luxury Aesthetic Clinic Website",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
