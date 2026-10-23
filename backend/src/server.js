@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 const config = require('./config/env');
 const db = require('./config/db');
@@ -55,16 +57,11 @@ app.use(morgan(config.isProduction ? 'combined' : 'dev'));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Root Welcome Route
-app.get('/', (req, res) => {
-  res.json({
-    service: 'La Crown Luxury Aesthetic Clinic API',
-    status: 'online',
-    version: '1.0.0',
-    documentation: '/api',
-    health: '/health'
-  });
-});
+// Static Frontend Files (serves luxury website directly from backend if Root Directory is backend)
+const publicDir = path.join(__dirname, '../public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+}
 
 // Render / Platform Top-Level Health Check Endpoint
 app.get('/health', async (req, res) => {
@@ -81,6 +78,23 @@ app.get('/health', async (req, res) => {
 
 // Mount Main API Router
 app.use('/api', apiRoutes);
+
+// Frontend SPA HTML Fallback (Serves index.html for root and client routes)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/health') return next();
+  const indexPath = path.join(publicDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  // Fallback API welcome if no frontend files found
+  res.json({
+    service: 'La Crown Luxury Aesthetic Clinic API',
+    status: 'online',
+    version: '1.0.0',
+    documentation: '/api',
+    health: '/health'
+  });
+});
 
 // 404 & Centralized Error Handlers
 app.use(notFoundHandler);

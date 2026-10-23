@@ -872,7 +872,7 @@ const API_BASE = (typeof window !== 'undefined' && window.__CONFIG__ && window._
   ? window.__CONFIG__.API_BASE_URL
   : ((typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
       ? 'http://localhost:8000/api'
-      : 'https://la-crown-backend.onrender.com/api');
+      : '/api');
 
 document.querySelectorAll('.demo-form').forEach(form => {
   form.addEventListener('submit', async e => {
