@@ -18,33 +18,15 @@ const app = express();
 // Trust reverse proxies (Render, AWS, Cloudflare)
 app.set('trust proxy', 1);
 
-// Security Headers
+// Security Headers (CSP disabled so frontend can connect to Render API without restriction)
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false
 }));
 
-// CORS Configuration
-const allowedOrigins = config.clientOrigins;
-
+// CORS Configuration - Reflects requesting origin for seamless Vercel <-> Render communication
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow server-to-server, curl, Postman, or mobile apps without origin
-    if (!origin) return callback(null, true);
-
-    // In non-production, allow any localhost/127.0.0.1
-    if (!config.isProduction && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-      return callback(null, true);
-    }
-
-    // Allow configured origins or any Vercel deployment preview (*.vercel.app)
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*') || origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-
-    // Default: allow with warning or block
-    console.warn(`[CORS] Request origin not in whitelist: ${origin}`);
-    return callback(null, true); // Permissive in initial rollout so deployment isn't blocked by mismatch
-  },
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
   credentials: true

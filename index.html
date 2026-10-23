@@ -1053,6 +1053,13 @@
 <!-- Global Toast Notifications -->
 <div class="toast-container" id="toastContainer"></div>
 
+<script>
+  window.__CONFIG__ = {
+    API_BASE_URL: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:8000/api'
+      : 'https://lacrown.onrender.com/api'
+  };
+</script>
 <script src="config.js"></script>
 <script src="preview.js"></script>
 </body>
