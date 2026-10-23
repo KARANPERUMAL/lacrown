@@ -1,0 +1,36 @@
+# ==============================================================================
+# Render Infrastructure Blueprint
+# Auto-deploys the La Crown Node.js REST API on Render.com
+# ==============================================================================
+
+services:
+  - type: web
+    name: la-crown-backend
+    runtime: node
+    plan: free
+    region: oregon # or ohio, frankfurt, singapore
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+        # Paste your Neon PostgreSQL connection string here in the Render dashboard:
+        # postgresql://user:password@ep-name.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - key: RESEND_API_KEY
+        sync: false
+        # Paste your Resend API Key (re_...) here
+      - key: MANAGER_EMAIL
+        sync: false
+        # Paste the manager's email address who should receive all form alerts
+      - key: EMAIL_FROM
+        value: "La Crown Concierge <onboarding@resend.dev>"
+      - key: CLIENT_ORIGIN
+        sync: false
+        # Paste your live Vercel frontend URL here (e.g., https://la-crown.vercel.app)
+      - key: ADMIN_SECRET_KEY
+        generateValue: true
